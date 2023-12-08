@@ -1,13 +1,9 @@
-#include <iostream>
-#include <chrono>
-#include <thread>
 #include "../inc/node.hpp"
 #include "../inc/gpio_utils.hpp"
 
-namespace ml = yrgo::machine_learning;
 
 int main() {
-    ml::Node neuralNetwork;
+    yrgo::machine_learning::Node neuralNetwork;
 
     // Initialize GPIO pins for buttons and LED
     neuralNetwork.InitializeGPIO();
