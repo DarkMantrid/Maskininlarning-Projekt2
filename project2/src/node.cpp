@@ -16,7 +16,7 @@ void Node::InitializeGPIO() {
     }
 
     // Open LED line
-    constexpr int ledGPIO = 25; // Byt ut detta med det verkliga GPIO-numret för din LED
+    constexpr int ledGPIO = 25; // Replace with actual GPIO pin for my led
     ledLine = gpiod_chip_get_line(chip, ledGPIO);
     if (!ledLine) {
         std::cerr << "Error getting LED line" << std::endl;
