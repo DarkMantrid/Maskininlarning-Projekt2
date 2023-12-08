@@ -1,4 +1,5 @@
 #include "../inc/node.hpp"
+#include "../inc/gpio_utils.hpp"
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -15,34 +16,38 @@ void Node::InitializeGPIO() {
     }
 
     // Open LED line
-    ledLine = gpiod_chip_get_line(chip, /* LED GPIO Line Number */);
+    constexpr int ledGPIO = 25; // Byt ut detta med det verkliga GPIO-numret för din LED
+    ledLine = gpiod_chip_get_line(chip, ledGPIO);
     if (!ledLine) {
         std::cerr << "Error getting LED line" << std::endl;
         // Handle error
     }
 
-    // Request LED line for output
     if (gpiod_line_request_output(ledLine, "LED", 0) < 0) {
         std::cerr << "Error requesting LED line" << std::endl;
         // Handle error
     }
 
-    // Open and request lines for buttons (adjust the button GPIO line numbers)
-    for (int buttonNum = 0; buttonNum < /* Number of buttons */; ++buttonNum) {
-        struct gpiod_line *buttonLine = gpiod_chip_get_line(chip, /* Button GPIO Line Number */);
+    // GPIO numbers for buttons
+    std::vector<int> buttonGPIOLines = {17, 18, 19}; // Replace with your actual GPIO numbers for buttons
+
+    // Open and request lines for buttons
+    for (int buttonNum = 0; buttonNum < buttonGPIOLines.size(); ++buttonNum) {
+        struct gpiod_line *buttonLine = gpiod_chip_get_line(chip, buttonGPIOLines[buttonNum]);
         if (!buttonLine) {
-            std::cerr << "Error getting button line" << std::endl;
+            std::cerr << "Error getting button line " << buttonNum << std::endl;
             // Handle error
         }
 
         if (gpiod_line_request_input(buttonLine, "Button") < 0) {
-            std::cerr << "Error requesting button line" << std::endl;
+            std::cerr << "Error requesting button line " << buttonNum << std::endl;
             // Handle error
         }
 
         buttonLines.push_back(buttonLine);
     }
 }
+
 
 std::vector<int> Node::ReadButtonStates() {
     std::vector<int> buttonStates;
