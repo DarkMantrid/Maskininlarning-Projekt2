@@ -47,45 +47,7 @@ private:
     void ForwardPropagation(const std::vector<int> &input);
     void BackPropagation(int target);
     int Predict(const std::vector<int> &input);
-
-    // Additional members for neural network functionality
-    void SetOutput(const std::vector<double> &new_output) { output = new_output; }
-    void SetHiddenOutputs(const std::vector<double> &new_hidden_outputs) { hidden_outputs = new_hidden_outputs; }
 };
-
-// Implement the methods inline or define them in a corresponding .cpp file
-// This might depend on the complexity and size of the methods
-
-inline Node::Node() : input_nodes(4), hidden_nodes(4), output_nodes(1) {
-    InitializeWeights();
-    InitializeGPIO();
-    output.resize(output_nodes);
-    hidden_outputs.resize(hidden_nodes);
-}
-
-inline Node::~Node() {
-    // Release GPIO resources
-    if (chip) {
-        gpiod_chip_close(chip);
-        chip = nullptr;
-    }
-    if (ledLine) {
-        gpiod_line_release(ledLine);
-        ledLine = nullptr;
-    }
-    for (auto line : buttonLines) {
-        if (line) {
-            gpiod_line_release(line);
-        }
-    }
-    buttonLines.clear();
-
-    // Release neural network resources if needed
-    // Add additional logic here for neural network resource cleanup if any
-}
-
-// Implement the methods inline or define them in a corresponding .cpp file
-// This might depend on the complexity and size of the methods
 
 } // namespace machine_learning
 } // namespace yrgo
