@@ -2,6 +2,7 @@
 #include <chrono>
 #include <thread>
 #include "../inc/node.hpp"
+#include "../inc/gpio_utils.hpp"
 
 namespace ml = yrgo::machine_learning;
 
