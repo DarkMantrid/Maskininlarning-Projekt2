@@ -10,7 +10,7 @@ gpiod_chip* get_gpiod_chip0() {
 
 gpiod_line* gpiod_line_new(const uint8_t pin, const GPIODLineDirection direction) {
     gpiod_line* self = gpiod_chip_get_line(get_gpiod_chip0(), pin);
-    if (direction == GPIOD_LINE_DIRECTION_IN) {
+    if (direction == GPIODLineDirection::In) {
         gpiod_line_request_input(self, "");
     } else {
         gpiod_line_request_output(self, "", 0);
@@ -36,9 +36,9 @@ bool gpiod_line_event_detected(gpiod_line* self, const GPIODLineEdge edge, uint8
     if (old_val == new_val) {
         return false;
     } else {
-        if (edge == GPIOD_LINE_EDGE_RISING) {
+        if (edge == GPIODLineEdge::RISING_EDGE) {
             return new_val && !old_val ? true : false;
-        } else if (edge == GPIOD_LINE_EDGE_FALLING) {
+        } else if (edge == GPIODLineEdge::FALLING_EDGE) {
             return !new_val && old_val ? true : false;
         } else {
             return true;
