@@ -9,12 +9,12 @@ namespace GPIOUtils {
 /**********************************************************************
  * @brief Enum representing GPIO line direction
  **********************************************************************/
-enum GPIODLineDirection { GPIOD_LINE_DIRECTION_IN, GPIOD_LINE_DIRECTION_OUT };
+enum GPIODLineDirection { In, Out };
 
 /**********************************************************************
  * @brief Enum representing GPIO line edge
  **********************************************************************/
-enum GPIODLineEdge { GPIOD_LINE_EDGE_RISING, GPIOD_LINE_EDGE_FALLING, GPIOD_LINE_EDGE_BOTH };
+enum GPIODLineEdge { RISING_EDGE, FALLING_EDGE, BOTH_EDGE };
 
 /**********************************************************************
  * @brief Gets the GPIO chip
