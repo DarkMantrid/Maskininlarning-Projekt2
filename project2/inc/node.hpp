@@ -8,23 +8,25 @@
 #include <chrono>
 #include <thread>
 
+
 namespace yrgo {
 namespace machine_learning {
 
+
 /**********************************************************************
- * @brief Class representing a Node in a machine learning system
+ * @brief Class representing a NeuralNetwork in a machine learning system
  **********************************************************************/
-class Node {
+class NeuralNetwork {
 public:
     /**********************************************************************
-     * @brief Default constructor for Node class
+     * @brief Default constructor for NeuralNetwork class
      **********************************************************************/
-    Node();
+    NeuralNetwork();
 
     /**********************************************************************
-     * @brief Destructor for Node class
+     * @brief Destructor for NeuralNetwork class
      **********************************************************************/
-    ~Node();
+    ~NeuralNetwork();
 
     /**********************************************************************
      * @brief Initializes the GPIO chip and lines
@@ -36,6 +38,31 @@ public:
      *        output
      **********************************************************************/
     void PredictAndControlLED();
+
+    /**********************************************************************
+     * @brief Trains the neural network using backpropagation
+     * @param inputs Vector of input data
+     * @param targets Vector of target outputs
+     * @param epochs Number of training epochs
+     * @param learning_rate Learning rate for weight updates
+     **********************************************************************/
+    void TrainNetwork(const std::vector<std::vector<int>> &inputs, const std::vector<int> &targets, int epochs, double learning_rate);
+
+    /**********************************************************************
+     * @brief Predicts the output based on the input data
+     * @param input Vector of input data
+     * @return Predicted output value
+     **********************************************************************/
+    int Predict(const std::vector<int> &input);
+
+
+    // Setter method for GPIO
+    void SetGPIO(gpiod_chip* chip, gpiod_line* ledLine, const std::vector<gpiod_line*>& buttonLines) {
+        this->chip = chip;
+        this->ledLine = ledLine;
+        this->buttonLines = buttonLines;
+    }
+
 
 private:
     struct gpiod_chip *chip; /**< Pointer to the GPIO chip */
@@ -69,14 +96,6 @@ private:
      **********************************************************************/
     void ControlLED(bool state);
 
-    /**********************************************************************
-     * @brief Trains the neural network using backpropagation
-     * @param inputs Vector of input data
-     * @param targets Vector of target outputs
-     * @param epochs Number of training epochs
-     * @param learning_rate Learning rate for weight updates
-     **********************************************************************/
-    void TrainNetwork(const std::vector<std::vector<int>> &inputs, const std::vector<int> &targets, int epochs, double learning_rate);
 
     /**********************************************************************
      * @brief Rectified Linear Unit (ReLU) activation function
@@ -102,12 +121,7 @@ private:
      **********************************************************************/
     void BackPropagation(int target);
 
-    /**********************************************************************
-     * @brief Predicts the output based on the input data
-     * @param input Vector of input data
-     * @return Predicted output value
-     **********************************************************************/
-    int Predict(const std::vector<int> &input);
+
 };
 
 } // namespace machine_learning
