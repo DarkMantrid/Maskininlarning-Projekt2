@@ -4,12 +4,12 @@
 namespace yrgo {
 namespace machine_learning {
 
-Node::Node() : input_nodes(4), hidden_nodes(4), output_nodes(1) {
+NeuralNetwork::NeuralNetwork() : input_nodes(4), hidden_nodes(4), output_nodes(1) {
     InitializeWeights();
     InitializeGPIO();
 }
 
-Node::~Node() {
+NeuralNetwork::~NeuralNetwork() {
     // Release GPIO resources
     if (chip) {
         gpiod_chip_close(chip);
@@ -30,7 +30,7 @@ Node::~Node() {
     // Add additional logic here for neural network resource cleanup if any
 }
 
-void Node::InitializeGPIO() {
+void NeuralNetwork::InitializeGPIO() {
     // Open GPIO chip
     chip = gpiod_chip_open("/dev/gpiochip0");
     if (!chip) {
@@ -68,7 +68,7 @@ void Node::InitializeGPIO() {
     }
 }
 
-std::vector<int> Node::ReadButtonStates() {
+std::vector<int> NeuralNetwork::ReadButtonStates() {
     std::vector<int> buttonStates;
 
     for (const auto &buttonLine : buttonLines) {
@@ -79,7 +79,7 @@ std::vector<int> Node::ReadButtonStates() {
     return buttonStates;
 }
 
-void Node::ControlLED(bool state) {
+void NeuralNetwork::ControlLED(bool state) {
     // Set LED state based on prediction
     int value = state ? 1 : 0;
     if (gpiod_line_set_value(ledLine, value) < 0) {
@@ -88,7 +88,7 @@ void Node::ControlLED(bool state) {
     }
 }
 
-void Node::InitializeWeights() {
+void NeuralNetwork::InitializeWeights() {
     // Initialize weights and biases with random values
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -123,12 +123,12 @@ void Node::InitializeWeights() {
     // Other necessary variable initialization for the neural network
 }
 
-double Node::ReLU(double x) {
+double NeuralNetwork::ReLU(double x) {
     // ReLU activation function
     return std::max(0.0, x);
 }
 
-void Node::ForwardPropagation(const std::vector<int> &input) {
+void NeuralNetwork::ForwardPropagation(const std::vector<int> &input) {
     // Calculate inputs to the hidden layer
     std::vector<double> hidden_inputs(hidden_nodes);
     for (int i = 0; i < hidden_nodes; ++i) {
@@ -164,7 +164,7 @@ void Node::ForwardPropagation(const std::vector<int> &input) {
     }
 }
 
-void Node::BackPropagation(int target) {
+void NeuralNetwork::BackPropagation(int target) {
     // Calculate output layer errors
     std::vector<double> output_errors(output_nodes);
     for (int i = 0; i < output_nodes; ++i) {
@@ -210,7 +210,7 @@ void Node::BackPropagation(int target) {
         }
     }
 }
-void Node::TrainNetwork(const std::vector<std::vector<int>> &inputs, const std::vector<int> &targets, int epochs, double learning_rate) {
+void NeuralNetwork::TrainNetwork(const std::vector<std::vector<int>> &inputs, const std::vector<int> &targets, int epochs, double learning_rate) {
     // Training loop for the specified number of epochs
     for (int epoch = 0; epoch < epochs; ++epoch) {
         // Iterate over each input-target pair for training
@@ -228,7 +228,7 @@ void Node::TrainNetwork(const std::vector<std::vector<int>> &inputs, const std::
 }
 
 
-int Node::Predict(const std::vector<int> &input) {
+int NeuralNetwork::Predict(const std::vector<int> &input) {
     // Perform forward propagation to predict the output based on the given input
     ForwardPropagation(input);
 
@@ -242,7 +242,7 @@ int Node::Predict(const std::vector<int> &input) {
     return (output[0] > 0.5) ? 1 : 0;
 }
 
-void Node::PredictAndControlLED() {
+void NeuralNetwork::PredictAndControlLED() {
     // Initial training to set the neural network to predict button press patterns
     TrainNetwork({{0, 0, 0, 0}, {0, 0, 0, 1}, {0, 0, 1, 0}, {0, 0, 1, 1}}, {0, 1, 1, 0}, 1000, 0.1);
 
@@ -259,6 +259,7 @@ void Node::PredictAndControlLED() {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
+
 
 } // namespace machine_learning
 } // namespace yrgo
