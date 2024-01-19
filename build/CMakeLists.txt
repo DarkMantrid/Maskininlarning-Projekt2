@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.20)
+project(gpio_cpp)
+include_directories(../inc)
+add_executable(run_gpio ../src/node.cpp ../src/main.cpp ../src/gpio_utils.cpp)
+target_compile_options(run_gpio PRIVATE -Wall -Werror)
+target_link_libraries(run_gpio gpiod pthread)
+set_target_properties(run_gpio PROPERTIES RUNTIME_OUTPUT_DIRECTORY ../)
