@@ -11,6 +11,7 @@ NeuralNetwork::NeuralNetwork()
     , learning_rate(0.1) {
         InitializeWeights();
         output.resize(output_nodes, 0);
+        input.resize(input_nodes, 0);
         hidden_outputs.resize(hidden_nodes, 0);
         weights_input_hidden.resize(input_nodes, std::vector<double>(hidden_nodes));
 
@@ -150,15 +151,10 @@ void NeuralNetwork::BackPropagation(int target) {
         // Update biases of the hidden layer
         bias_hidden[i] += learning_rate * hidden_errors[i];
         
-        std::cout << "Before updating weights between input and hidden layers" << std::endl;
-        // Update weights between input and hidden layers
-        // Inside input-hidden layer loop
         for (int j = 0; j < input_nodes; ++j) {
-            std::cout << "Inside input-hidden layer loop - index " << j << std::endl;
-            double weight_delta = learning_rate * hidden_errors[i] * input[j]; //FEL HÄR
+            double weight_delta = learning_rate * hidden_errors[i] * input[j];
             weights_input_hidden[j][i] += weight_delta;
         }
-        std::cout << "After updating weights between input and hidden layers" << std::endl;
     }
 }
 
