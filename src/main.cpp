@@ -7,15 +7,6 @@
  **********************************************************************/
 int main() {
     yrgo::machine_learning::NeuralNetwork neuralNetwork; // Create an instance of the NeuralNetwork class
-
-    // Initialize GPIO pins for buttons and LED
-    neuralNetwork.InitializeGPIO();
-
-    // Run the system continuously
-    while (true) {
-        // Predict LED state based on button inputs and control LED
-        neuralNetwork.PredictAndControlLED();
-    }
-
+    neuralNetwork.PredictAndControlLED();
     return 0; // Return 0 to indicate successful execution
 }
