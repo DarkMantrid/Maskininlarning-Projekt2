@@ -1,5 +1,23 @@
 #include "../inc/node.hpp"
+#include <cmath>
 #include <iostream>
+#include <thread>
+#include <chrono>
+
+namespace {
+    
+template <typename T = int>
+void Print(const std::vector<T>& data, std::ostream& ostream = std::cout) {
+    static_assert(std::is_arithmetic<T>::value, 
+        "Non-arithmetic type selected for method ::Print!");
+    ostream << "[";
+    for (const auto& i : data) {
+        ostream << i;
+        if (&i < &data[data.size() - 1]) { ostream << ", "; }
+    }
+    ostream << "]\n";
+}
+} // namespace
 
 namespace yrgo {
 namespace machine_learning {
@@ -8,12 +26,13 @@ NeuralNetwork::NeuralNetwork()
     : input_nodes(4) 
     , hidden_nodes(10) 
     , output_nodes(1)
-    , learning_rate(0.1) {
+    , learning_rate(0.01) {
         InitializeWeights();
         output.resize(output_nodes, 0);
         input.resize(input_nodes, 0);
         hidden_outputs.resize(hidden_nodes, 0);
         weights_input_hidden.resize(input_nodes, std::vector<double>(hidden_nodes));
+        weights_hidden_output.resize(hidden_nodes, std::vector<double>(output_nodes));
 
 }
 
@@ -26,8 +45,8 @@ NeuralNetwork::~NeuralNetwork() {
 void NeuralNetwork::InitializeGPIO() {
 }
 
-std::vector<int> NeuralNetwork::ReadButtonStates() {
-    std::vector<int> buttonStates;
+std::vector<double> NeuralNetwork::ReadButtonStates() {
+    std::vector<double> buttonStates;
     return buttonStates;
 }
 
@@ -38,7 +57,7 @@ void NeuralNetwork::InitializeWeights() {
     // Initialize weights and biases with random values
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dist(-1.0, 1.0); // Adjust the range as needed
+    std::uniform_real_distribution<> dist(0, 1.0); // Adjust the range as needed
 
     // Initialize weights for input-hidden layer
     weights_input_hidden.resize(input_nodes, std::vector<double>(hidden_nodes));
@@ -66,6 +85,10 @@ void NeuralNetwork::InitializeWeights() {
         bias_output[i] = dist(gen);
     }
 
+    // std::cout << "Bias hidden ";
+    // Print(bias_hidden);
+    // std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+
     // Other necessary variable initialization for the neural network
 }
 
@@ -74,25 +97,36 @@ double NeuralNetwork::ReLU(double x) {
     return std::max(0.0, x);
 }
 
-void NeuralNetwork::ForwardPropagation(const std::vector<int> &input) {
-    
+double NeuralNetwork::TanH(double x) {
+    return std::tanh(x);
+}
+
+double NeuralNetwork::TanHDelta(double x) {
+    return 1 - std::pow(std::tanh(x), 2); // 1 - tanh^2
+}
+
+void NeuralNetwork::ForwardPropagation(const std::vector<double> &input) {
     // Calculate inputs to the hidden layer
-    std::vector<double> hidden_inputs(hidden_nodes);
+    std::vector<double> hidden_inputs(hidden_nodes, 0);
     for (int i = 0; i < hidden_nodes; ++i) {
         hidden_inputs[i] = bias_hidden[i];
+        // std::cout << "Hidden inputs[" << i << "] = " << hidden_inputs[i] << "\n";
         for (int j = 0; j < input_nodes; ++j) {
             hidden_inputs[i] += input[j] * weights_input_hidden[j][i];
         }
     }
 
-    // Apply ReLU activation function to the hidden layer
-    hidden_outputs.resize(hidden_nodes);
+    // Apply TanH activation function to the hidden layer
+    hidden_outputs.resize(hidden_nodes, 0);
     for (int i = 0; i < hidden_nodes; ++i) {
-        hidden_outputs[i] = ReLU(hidden_inputs[i]);
+        hidden_outputs[i] = TanH(hidden_inputs[i]);
     }
-    
+
+    // std::cout <<  "Hidden output: ";
+    // Print(hidden_outputs);
+
     // Calculate inputs to the output layer
-    std::vector<double> final_inputs(output_nodes);
+    std::vector<double> final_inputs(output_nodes, 0);
     for (int i = 0; i < output_nodes; ++i) {
         final_inputs[i] = bias_output[i];
         for (int j = 0; j < hidden_nodes; ++j) {
@@ -100,36 +134,33 @@ void NeuralNetwork::ForwardPropagation(const std::vector<int> &input) {
         }
     }
 
-    // Apply ReLU activation function to the output layer (if needed)
-    // For classification tasks, the output layer might not use ReLU
-
-    // Output layer activations or outputs (depends on the task)
-    // Modify this part according to your network's output requirements
-    output.resize(output_nodes);
+    output.resize(output_nodes, 0);
     for (int i = 0; i < output_nodes; ++i) {
-        // Calculate the output of the output layer neurons here
-        // Assign the calculated output to your output structure or variable
+        output[i] = ReLU(final_inputs[i]);
     }
+    
+    // std::cout <<  "Current output: ";
+    // Print(output);
 }
 
-void NeuralNetwork::BackPropagation(int target) {
+void NeuralNetwork::BackPropagation(double target) {
     // Calculate output layer errors
     std::vector<double> output_errors(output_nodes); // Adjusted to use resize
     for (int i = 0; i < output_nodes; ++i) {
-        // Calculate the error for each neuron in the output layer
-        // Error calculation depends on the task (classification, regression, etc.)
-        // Adjust this calculation based on your network's output requirements
-        // Example for a simple squared error loss function
-        // Replace this with the appropriate error calculation for your task
+        // Calculate the error for each neuron in the output layerk
         double output_error = target - output[i]; // Adjust based on actual output storage
-        output_errors[i] = output_error;
+        auto relu_delta = output[i] > 0 ? 1 : 0;
+        output_errors[i] = output_error * relu_delta;
+
+        // std::cout << "Output  errors: ";
+        // Print(output_errors);
 
         // Update biases of the output layer
         bias_output[i] += learning_rate * output_error;
 
         // Update weights between hidden and output layers
         for (int j = 0; j < hidden_nodes; ++j) {
-            double weight_delta = learning_rate * output_error * hidden_outputs[j];
+            double weight_delta = learning_rate * output_errors[i] * hidden_outputs[j];
             weights_hidden_output[j][i] += weight_delta;
         }
     }
@@ -144,9 +175,8 @@ void NeuralNetwork::BackPropagation(int target) {
         for (int j = 0; j < output_nodes; ++j) {
             weighted_output_errors += output_errors[j] * weights_hidden_output[i][j];
         }
-        // Derivative of ReLU activation function
-        double derivative = (hidden_outputs[i] > 0) ? 1 : 0;
-        hidden_errors[i] = weighted_output_errors * derivative;
+        // Derivative of TanH activation function
+        hidden_errors[i] = weighted_output_errors * TanHDelta(hidden_outputs[i]);
 
         // Update biases of the hidden layer
         bias_hidden[i] += learning_rate * hidden_errors[i];
@@ -158,7 +188,7 @@ void NeuralNetwork::BackPropagation(int target) {
     }
 }
 
-void NeuralNetwork::TrainNetwork(const std::vector<std::vector<int>> &inputs, const std::vector<int> &targets, int epochs, double learning_rate) {
+void NeuralNetwork::TrainNetwork(const std::vector<std::vector<double>> &inputs, const std::vector<double> &targets, double epochs, double learning_rate) {
     // Training loop for the specified number of epochs
     for (int epoch = 0; epoch < epochs; ++epoch) {
         // Iterate over each input-target pair for training
@@ -175,36 +205,46 @@ void NeuralNetwork::TrainNetwork(const std::vector<std::vector<int>> &inputs, co
     }
 }
 
-int NeuralNetwork::Predict(const std::vector<int> &input) {
+double NeuralNetwork::Predict(const std::vector<double> &input) {
     // Perform forward propagation to predict the output based on the given input
     ForwardPropagation(input);
 
-    // Interpret the network's output to make a prediction
-    // You might need to adjust this logic based on your specific problem
-    // For instance, if you're dealing with binary classification, 
-    // return 0 or 1 based on the output value thresholded at 0.5
-    // Adjust this return statement as per your network's output representation
-
-    // Example: binary classification
-    return (output[0] > 0.5) ? 1 : 0;
+    // Apply ReLU activation function to the output layer
+    return ReLU(output[0]);
 }
 
 void NeuralNetwork::PredictAndControlLED() {
     // Initial training to set the neural network to predict button press patterns
-    const std::vector<std::vector<int>> trainingData = {
+    const std::vector<std::vector<double>> trainingData = {
         {0, 0, 0, 0}, {0, 0, 0, 1}, {0, 0, 1, 0}, {0, 0, 1, 1},
         {0, 1, 0, 0}, {0, 1, 0, 1}, {0, 1, 1, 0}, {0, 1, 1, 1},
         {1, 0, 0, 0}, {1, 0, 0, 1}, {1, 0, 1, 0}, {1, 0, 1, 1},
         {1, 1, 0, 0}, {1, 1, 0, 1}, {1, 1, 1, 0}, {1, 1, 1, 1}
     };
 
-    const std::vector<int> labels = {0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0};
-    const int epochs = 1000;
+    const std::vector<double> labels = {0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0};
+    const double epochs = 10000;
     const double learningRate = 0.1;
 
     TrainNetwork(trainingData, labels, epochs, learningRate);
 
     // Vi testar alla trainingData-uppsättningar och skriver ut i terminalen.
+    PrintPredictions(trainingData, 2);
+}
+
+void NeuralNetwork::PrintPredictions(const std::vector<std::vector<double>>& input_sets,
+                                     const std::size_t num_decimals,
+                                     std::ostream& ostream) {
+    if (input_sets.size() == 0) { return; }
+    ostream << std::fixed << std::setprecision(num_decimals);
+    ostream << "--------------------------------------------------------------------------------";
+    for (const auto& input: input_sets) {
+        ostream << "\nInput:\t";
+        Print<double>(input, ostream);
+        ostream << "Predicted:\t";
+        ostream << "[" << Predict(input) << "]\n";
+    }
+    ostream << "--------------------------------------------------------------------------------\n\n";
 }
 
 } // namespace machine_learning
