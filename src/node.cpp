@@ -57,7 +57,7 @@ void NeuralNetwork::InitializeWeights() {
     // Initialize weights and biases with random values
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dist(0, 1.0); // Adjust the range as needed
+    std::uniform_real_distribution<> dist(0, 1); // Adjust the range as needed
 
     // Initialize weights for input-hidden layer
     weights_input_hidden.resize(input_nodes, std::vector<double>(hidden_nodes));
@@ -223,8 +223,8 @@ void NeuralNetwork::PredictAndControlLED() {
     };
 
     const std::vector<double> labels = {0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0};
-    const double epochs = 10000;
-    const double learningRate = 0.1;
+    const double epochs = 100000;
+    const double learningRate = 0.01;
 
     TrainNetwork(trainingData, labels, epochs, learningRate);
 
