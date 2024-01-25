@@ -15,10 +15,10 @@ int main() {
         {1, 1, 0, 0}, {1, 1, 0, 1}, {1, 1, 1, 0}, {1, 1, 1, 1}
     };
     const std::vector<double> labels = {0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0};
-    neuralNetwork.TrainNetwork(trainingData, labels, 10000);
+    neuralNetwork.TrainNetwork(trainingData, labels, 20000);
     neuralNetwork.PrintPredictions(trainingData, 2);
     // Initialize GPIO pins for buttons and LED
-    neuralNetwork.InitializeGPIO();
+    // neuralNetwork.InitializeGPIO();
 
     // Run the system continuously
     /* while (true) {
