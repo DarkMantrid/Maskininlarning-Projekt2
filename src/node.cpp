@@ -22,17 +22,20 @@ void Print(const std::vector<T>& data, std::ostream& ostream = std::cout) {
 namespace yrgo {
 namespace machine_learning {
 
-NeuralNetwork::NeuralNetwork() 
-    : input_nodes(4) 
-    , hidden_nodes(10) 
-    , output_nodes(1)
-    , learning_rate(0.01) {
+NeuralNetwork::NeuralNetwork(const std::size_t num_inputs, 
+                             const std::size_t num_hidden, 
+                             const std::size_t num_outputs,
+                             const double learning_rate) 
+    : input_nodes(num_inputs) 
+    , hidden_nodes(num_hidden) 
+    , output_nodes(num_outputs)
+    , learning_rate(learning_rate) {
         InitializeWeights();
         output.resize(output_nodes, 0);
         input.resize(input_nodes, 0);
         hidden_outputs.resize(hidden_nodes, 0);
-        weights_input_hidden.resize(input_nodes, std::vector<double>(hidden_nodes));
-        weights_hidden_output.resize(hidden_nodes, std::vector<double>(output_nodes));
+        hidden_errors.resize(hidden_nodes, 0);
+        output_errors.resize(output_nodes, 0);
 
 }
 
@@ -59,42 +62,32 @@ void NeuralNetwork::InitializeWeights() {
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dist(0, 1); // Adjust the range as needed
 
-    // Initialize weights for input-hidden layer
-    weights_input_hidden.resize(input_nodes, std::vector<double>(hidden_nodes));
-    for (int i = 0; i < input_nodes; ++i) {
-        for (int j = 0; j < hidden_nodes; ++j) {
+    bias_hidden.resize(hidden_nodes);
+    weights_input_hidden.resize(hidden_nodes, std::vector<double>(input_nodes));
+    for (int i = 0; i < hidden_nodes; ++i) {
+         bias_hidden[i] = dist(gen);
+        for (int j = 0; j < input_nodes; ++j) {
             weights_input_hidden[i][j] = dist(gen);
         }
     }
 
-    // Initialize weights for hidden-output layer
-    weights_hidden_output.resize(hidden_nodes, std::vector<double>(output_nodes));
-    for (int i = 0; i < hidden_nodes; ++i) {
-        for (int j = 0; j < output_nodes; ++j) {
+    bias_output.resize(output_nodes);
+    weights_hidden_output.resize(output_nodes, std::vector<double>(hidden_nodes));
+    for (int i = 0; i < output_nodes; ++i) {
+        bias_output[i] = dist(gen);
+        for (int j = 0; j < hidden_nodes; ++j) {
             weights_hidden_output[i][j] = dist(gen);
         }
     }
-
-    // Initialize biases for hidden and output layers
-    bias_hidden.resize(hidden_nodes);
-    bias_output.resize(output_nodes);
-    for (int i = 0; i < hidden_nodes; ++i) {
-        bias_hidden[i] = dist(gen);
-    }
-    for (int i = 0; i < output_nodes; ++i) {
-        bias_output[i] = dist(gen);
-    }
-
-    // std::cout << "Bias hidden ";
-    // Print(bias_hidden);
-    // std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-
-    // Other necessary variable initialization for the neural network
 }
 
 double NeuralNetwork::ReLU(double x) {
     // ReLU activation function
     return std::max(0.0, x);
+}
+
+double NeuralNetwork::ReLUDelta(double x) {
+    return x > 0 ? 1 : 0;
 }
 
 double NeuralNetwork::TanH(double x) {
@@ -106,101 +99,61 @@ double NeuralNetwork::TanHDelta(double x) {
 }
 
 void NeuralNetwork::ForwardPropagation(const std::vector<double> &input) {
-    // Calculate inputs to the hidden layer
     std::vector<double> hidden_inputs(hidden_nodes, 0);
     for (int i = 0; i < hidden_nodes; ++i) {
         hidden_inputs[i] = bias_hidden[i];
-        // std::cout << "Hidden inputs[" << i << "] = " << hidden_inputs[i] << "\n";
         for (int j = 0; j < input_nodes; ++j) {
-            hidden_inputs[i] += input[j] * weights_input_hidden[j][i];
+            hidden_inputs[i] += input[j] * weights_input_hidden[i][j];
         }
-    }
-
-    // Apply TanH activation function to the hidden layer
-    hidden_outputs.resize(hidden_nodes, 0);
-    for (int i = 0; i < hidden_nodes; ++i) {
         hidden_outputs[i] = TanH(hidden_inputs[i]);
     }
 
-    // std::cout <<  "Hidden output: ";
-    // Print(hidden_outputs);
-
-    // Calculate inputs to the output layer
     std::vector<double> final_inputs(output_nodes, 0);
     for (int i = 0; i < output_nodes; ++i) {
         final_inputs[i] = bias_output[i];
         for (int j = 0; j < hidden_nodes; ++j) {
-            final_inputs[i] += hidden_outputs[j] * weights_hidden_output[j][i];
+            final_inputs[i] += hidden_outputs[j] * weights_hidden_output[i][j];
         }
-    }
-
-    output.resize(output_nodes, 0);
-    for (int i = 0; i < output_nodes; ++i) {
         output[i] = ReLU(final_inputs[i]);
     }
-    
-    // std::cout <<  "Current output: ";
-    // Print(output);
 }
 
-void NeuralNetwork::BackPropagation(double target) {
-    // Calculate output layer errors
-    std::vector<double> output_errors(output_nodes); // Adjusted to use resize
+void NeuralNetwork::BackPropagation(double target) { 
     for (int i = 0; i < output_nodes; ++i) {
-        // Calculate the error for each neuron in the output layerk
-        double output_error = target - output[i]; // Adjust based on actual output storage
-        auto relu_delta = output[i] > 0 ? 1 : 0;
-        output_errors[i] = output_error * relu_delta;
-
-        // std::cout << "Output  errors: ";
-        // Print(output_errors);
-
-        // Update biases of the output layer
-        bias_output[i] += learning_rate * output_error;
-
-        // Update weights between hidden and output layers
-        for (int j = 0; j < hidden_nodes; ++j) {
-            double weight_delta = learning_rate * output_errors[i] * hidden_outputs[j];
-            weights_hidden_output[j][i] += weight_delta;
-        }
+        output_errors[i] = (target - output[i]) * ReLUDelta(output[i]);
     }
 
-    // Calculate hidden layer errors
-    std::vector<double> hidden_errors(hidden_nodes);
     for (int i = 0; i < hidden_nodes; ++i) {
-        // Calculate the error for each neuron in the hidden layer
-        // Error calculation depends on the activation function and output layer errors
-        // Here, it's based on the weighted sum of output errors and weights from hidden to output
         double weighted_output_errors = 0.0;
         for (int j = 0; j < output_nodes; ++j) {
-            weighted_output_errors += output_errors[j] * weights_hidden_output[i][j];
+            weighted_output_errors += output_errors[j] * weights_hidden_output[j][i];
         }
-        // Derivative of TanH activation function
         hidden_errors[i] = weighted_output_errors * TanHDelta(hidden_outputs[i]);
+    }
+}
 
-        // Update biases of the hidden layer
-        bias_hidden[i] += learning_rate * hidden_errors[i];
-        
-        for (int j = 0; j < input_nodes; ++j) {
-            double weight_delta = learning_rate * hidden_errors[i] * input[j];
-            weights_input_hidden[j][i] += weight_delta;
+void NeuralNetwork::Optimize(const std::vector<double> &input) {
+    for (std::size_t i{}; i < hidden_nodes; ++i) {
+        bias_hidden[i] += hidden_errors[i] * learning_rate;
+        for (std::size_t j{}; j < input_nodes && j < input.size(); ++j) {
+            weights_input_hidden[i][j] += hidden_errors[i] * learning_rate * input[j];
+        }
+    }
+
+    for (std::size_t i{}; i < output_nodes; ++i) {
+        bias_output[i] += output_errors[i] * learning_rate;
+        for (std::size_t j{}; j < hidden_nodes; ++j) {
+            weights_hidden_output[i][j] += output_errors[i] * learning_rate * hidden_outputs[j];
         }
     }
 }
 
-void NeuralNetwork::TrainNetwork(const std::vector<std::vector<double>> &inputs, const std::vector<double> &targets, double epochs, double learning_rate) {
-    // Training loop for the specified number of epochs
+void NeuralNetwork::TrainNetwork(const std::vector<std::vector<double>> &inputs, const std::vector<double> &targets, int epochs) {
     for (int epoch = 0; epoch < epochs; ++epoch) {
-        // Iterate over each input-target pair for training
         for (size_t idx = 0; idx < inputs.size(); ++idx) {
-            // Perform forward propagation for the current input
             ForwardPropagation(inputs[idx]);
-
-            // Calculate output layer errors and update weights using backpropagation
             BackPropagation(targets[idx]);
-
-            // Optionally, perform weight updates after processing a batch of inputs
-            // Here, weight updates are done after processing each input for simplicity
+            Optimize(inputs[idx]);
         }
     }
 }
@@ -213,24 +166,6 @@ double NeuralNetwork::Predict(const std::vector<double> &input) {
     return ReLU(output[0]);
 }
 
-void NeuralNetwork::PredictAndControlLED() {
-    // Initial training to set the neural network to predict button press patterns
-    const std::vector<std::vector<double>> trainingData = {
-        {0, 0, 0, 0}, {0, 0, 0, 1}, {0, 0, 1, 0}, {0, 0, 1, 1},
-        {0, 1, 0, 0}, {0, 1, 0, 1}, {0, 1, 1, 0}, {0, 1, 1, 1},
-        {1, 0, 0, 0}, {1, 0, 0, 1}, {1, 0, 1, 0}, {1, 0, 1, 1},
-        {1, 1, 0, 0}, {1, 1, 0, 1}, {1, 1, 1, 0}, {1, 1, 1, 1}
-    };
-
-    const std::vector<double> labels = {0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0};
-    const double epochs = 100000;
-    const double learningRate = 0.01;
-
-    TrainNetwork(trainingData, labels, epochs, learningRate);
-
-    // Vi testar alla trainingData-uppsättningar och skriver ut i terminalen.
-    PrintPredictions(trainingData, 2);
-}
 
 void NeuralNetwork::PrintPredictions(const std::vector<std::vector<double>>& input_sets,
                                      const std::size_t num_decimals,

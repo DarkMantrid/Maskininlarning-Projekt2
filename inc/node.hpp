@@ -20,10 +20,16 @@ namespace machine_learning {
  **********************************************************************/
 class NeuralNetwork {
 public:
+
+    NeuralNetwork() = delete;
+
     /**********************************************************************
      * @brief Default constructor for NeuralNetwork class
      **********************************************************************/
-    NeuralNetwork();
+    NeuralNetwork(const std::size_t num_inputs, 
+                  const std::size_t num_hidden, 
+                  const std::size_t num_outputs,
+                  const double learning_rate = 0.01);
 
     /**********************************************************************
      * @brief Destructor for NeuralNetwork class
@@ -36,19 +42,13 @@ public:
     void InitializeGPIO();
 
     /**********************************************************************
-     * @brief Predicts and controls the LED based on the neural network's 
-     *        output
-     **********************************************************************/
-    void PredictAndControlLED();
-
-    /**********************************************************************
      * @brief Trains the neural network using backpropagation
      * @param inputs Vector of input data
      * @param targets Vector of target outputs
      * @param epochs Number of training epochs
      * @param learning_rate Learning rate for weight updates
      **********************************************************************/
-    void TrainNetwork(const std::vector<std::vector<double>> &inputs, const std::vector<double> &targets, double epochs, double learning_rate);
+    void TrainNetwork(const std::vector<std::vector<double>> &inputs, const std::vector<double> &targets, int epochs);
 
     /**********************************************************************
      * @brief Predicts the output based on the input data
@@ -95,6 +95,8 @@ private:
     double learning_rate; /**< Learning rate for weight updates */
     std::vector<double> input; /**< Input data used in backpropagation */
     std::vector<double> output; /**< Actual output from the network during forward pass */
+    std::vector<double> output_errors;
+    std::vector<double> hidden_errors;
 
     // Neural network methods
 
@@ -118,6 +120,8 @@ private:
      **********************************************************************/
     double ReLU(double x);
 
+    double ReLUDelta(double x);
+
     double TanH(double x);
 
     double TanHDelta(double x);
@@ -138,6 +142,8 @@ private:
      * @param target Target output value
      **********************************************************************/
     void BackPropagation(double target);
+
+    void Optimize(const std::vector<double> &input);
 
 
 };
