@@ -143,6 +143,10 @@ private:
      **********************************************************************/
     void BackPropagation(double target);
 
+    /**********************************************************************
+     * @brief Optimizes the neural network parameters using the provided input
+     * @param input Input vector for optimization
+     **********************************************************************/
     void Optimize(const std::vector<double> &input);
 
 
