@@ -1,4 +1,5 @@
 #include "../inc/node.hpp"
+#include "../inc/gpio_utils.hpp"
 #include <cmath>
 #include <iostream>
 #include <thread>
@@ -227,6 +228,17 @@ double NeuralNetwork::Predict(const std::vector<double> &input) {
 
     // Apply ReLU activation function to the output layer
     return ReLU(output[0]);
+}
+
+void NeuralNetwork::PredictAndControlLED() {
+    // Read the states of the buttons
+    std::vector<double> buttonStates = ReadButtonStates();
+
+    // Predict LED state based on button inputs
+    double prediction = Predict(buttonStates);
+
+    // Control LED based on the predicted state
+    ControlLED(prediction > 0.5); // Assuming 0.5 threshold for binary prediction
 }
 
 

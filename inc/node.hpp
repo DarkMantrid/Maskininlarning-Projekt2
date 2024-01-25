@@ -64,7 +64,10 @@ public:
         this->ledLine = ledLine;
         this->buttonLines = buttonLines;
     }
-
+    /********************************************************************************
+     * @brief Predicts and controls the LEDs.
+     *******************************************************************************/
+    void PredictAndControlLED();
 
     /********************************************************************************
      * @brief Performs predictions with all input sets and prints the output.
@@ -148,7 +151,6 @@ private:
      * @param input Input vector for optimization
      **********************************************************************/
     void Optimize(const std::vector<double> &input);
-
 
 };
 

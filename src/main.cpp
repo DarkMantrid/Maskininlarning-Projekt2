@@ -18,13 +18,13 @@ int main() {
     neuralNetwork.TrainNetwork(trainingData, labels, 20000);
     neuralNetwork.PrintPredictions(trainingData, 2);
     // Initialize GPIO pins for buttons and LED
-    // neuralNetwork.InitializeGPIO();
+    neuralNetwork.InitializeGPIO();
 
     // Run the system continuously
-    /* while (true) {
+    while (true) {
         // Predict LED state based on button inputs and control LED
         neuralNetwork.PredictAndControlLED();
-    } */
+    } 
 
     return 0; // Return 0 to indicate successful execution
 }
