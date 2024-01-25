@@ -229,7 +229,7 @@ double NeuralNetwork::Predict(const std::vector<double> &input) {
     return ReLU(output[0]);
 }
 
-/*
+
 void NeuralNetwork::PrintPredictions(const std::vector<std::vector<double>>& input_sets,
                                      const std::size_t num_decimals,
                                      std::ostream& ostream) {
@@ -243,7 +243,7 @@ void NeuralNetwork::PrintPredictions(const std::vector<std::vector<double>>& inp
         ostream << "[" << Predict(input) << "]\n";
     }
     ostream << "--------------------------------------------------------------------------------\n\n";
-} */
+} 
 
 } // namespace machine_learning
 } // namespace yrgo
