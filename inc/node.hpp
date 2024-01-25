@@ -7,6 +7,8 @@
 #include <cmath>
 #include <chrono>
 #include <thread>
+#include <iomanip>
+#include <type_traits>
 
 
 namespace yrgo {
@@ -18,10 +20,16 @@ namespace machine_learning {
  **********************************************************************/
 class NeuralNetwork {
 public:
+
+    NeuralNetwork() = delete;
+
     /**********************************************************************
      * @brief Default constructor for NeuralNetwork class
      **********************************************************************/
-    NeuralNetwork();
+    NeuralNetwork(const std::size_t num_inputs, 
+                  const std::size_t num_hidden, 
+                  const std::size_t num_outputs,
+                  const double learning_rate = 0.01);
 
     /**********************************************************************
      * @brief Destructor for NeuralNetwork class
@@ -34,26 +42,20 @@ public:
     void InitializeGPIO();
 
     /**********************************************************************
-     * @brief Predicts and controls the LED based on the neural network's 
-     *        output
-     **********************************************************************/
-    void PredictAndControlLED();
-
-    /**********************************************************************
      * @brief Trains the neural network using backpropagation
      * @param inputs Vector of input data
      * @param targets Vector of target outputs
      * @param epochs Number of training epochs
      * @param learning_rate Learning rate for weight updates
      **********************************************************************/
-    void TrainNetwork(const std::vector<std::vector<int>> &inputs, const std::vector<int> &targets, int epochs, double learning_rate);
+    void TrainNetwork(const std::vector<std::vector<double>> &inputs, const std::vector<double> &targets, int epochs);
 
     /**********************************************************************
      * @brief Predicts the output based on the input data
      * @param input Vector of input data
      * @return Predicted output value
      **********************************************************************/
-    int Predict(const std::vector<int> &input);
+    double Predict(const std::vector<double> &input);
 
 
     // Setter method for GPIO
@@ -62,6 +64,18 @@ public:
         this->ledLine = ledLine;
         this->buttonLines = buttonLines;
     }
+
+
+    /********************************************************************************
+     * @brief Performs predictions with all input sets and prints the output.
+     * 
+     * @param input_sets   Reference to vector holding all input sets to predict with.
+     * @param num_decimals The number of decimals to print (default = 0).
+     * @param ostream      Reference to output stream (default = terminal print).
+     ********************************************************************************/
+    void PrintPredictions(const std::vector<std::vector<double>>& input_sets,
+                          const std::size_t num_decimals = 0,
+                          std::ostream& ostream = std::cout);
 
 
 private:
@@ -79,8 +93,10 @@ private:
     std::vector<double> bias_output; /**< Biases of output layer nodes */
     std::vector<double> hidden_outputs; /**< Outputs of hidden layer neurons */
     double learning_rate; /**< Learning rate for weight updates */
-    std::vector<int> input; /**< Input data used in backpropagation */
+    std::vector<double> input; /**< Input data used in backpropagation */
     std::vector<double> output; /**< Actual output from the network during forward pass */
+    std::vector<double> output_errors;
+    std::vector<double> hidden_errors;
 
     // Neural network methods
 
@@ -88,7 +104,7 @@ private:
      * @brief Reads the states of the buttons
      * @return Vector containing the states of the buttons
      **********************************************************************/
-    std::vector<int> ReadButtonStates();
+    std::vector<double> ReadButtonStates();
 
     /**********************************************************************
      * @brief Controls the LED based on the given state
@@ -104,6 +120,12 @@ private:
      **********************************************************************/
     double ReLU(double x);
 
+    double ReLUDelta(double x);
+
+    double TanH(double x);
+
+    double TanHDelta(double x);
+
     /**********************************************************************
      * @brief Initializes the weights and biases of the neural network
      **********************************************************************/
@@ -113,13 +135,19 @@ private:
      * @brief Performs forward propagation in the neural network
      * @param input Vector of input data
      **********************************************************************/
-    void ForwardPropagation(const std::vector<int> &input);
+    void ForwardPropagation(const std::vector<double> &input);
 
     /**********************************************************************
      * @brief Performs backpropagation in the neural network
      * @param target Target output value
      **********************************************************************/
-    void BackPropagation(int target);
+    void BackPropagation(double target);
+
+    /**********************************************************************
+     * @brief Optimizes the neural network parameters using the provided input
+     * @param input Input vector for optimization
+     **********************************************************************/
+    void Optimize(const std::vector<double> &input);
 
 
 };
