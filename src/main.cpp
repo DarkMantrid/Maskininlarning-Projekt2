@@ -24,6 +24,8 @@ int main() {
     while (true) {
         // Predict LED state based on button inputs and control LED
         neuralNetwork.PredictAndControlLED();
+        // Introduce a delay to avoid tight loop
+        usleep(50000); // 50ms delay
     } 
 
     return 0; // Return 0 to indicate successful execution
