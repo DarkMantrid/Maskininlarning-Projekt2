@@ -259,18 +259,3 @@ void NeuralNetwork::PrintPredictions(const std::vector<std::vector<double>>& inp
 
 } // namespace machine_learning
 } // namespace yrgo
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
