@@ -123,10 +123,25 @@ private:
      **********************************************************************/
     double ReLU(double x);
 
+     /**********************************************************************
+     * @brief Derivative of the Rectified Linear Unit (ReLU) activation function
+     * @param x Input value
+     * @return Derivative of ReLU with respect to the input value
+     **********************************************************************/
     double ReLUDelta(double x);
 
+    /**********************************************************************
+     * @brief Hyperbolic Tangent (TanH) activation function
+     * @param x Input value
+     * @return Output value after applying TanH
+     **********************************************************************/
     double TanH(double x);
 
+    /**********************************************************************
+     * @brief Derivative of the Hyperbolic Tangent (TanH) activation function
+     * @param x Input value
+     * @return Derivative of TanH with respect to the input value
+     **********************************************************************/
     double TanHDelta(double x);
 
     /**********************************************************************
