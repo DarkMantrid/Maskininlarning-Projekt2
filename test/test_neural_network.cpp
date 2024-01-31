@@ -22,8 +22,11 @@ public:
 // Test case to check the prediction accuracy of the NeuralNetwork class
 TEST_F(NeuralNetworkTest, PredictionAccuracyWithinTolerance) {
     // Define test input data and expected output
-    std::vector<std::vector<double>> input_sets = {{0, 0}, {0, 1}, {1, 0}, {1, 1}};
-    std::vector<double> expected_outputs = {0, 1, 1, 0};
+    std::vector<std::vector<double>> input_sets = {{0, 0, 0, 0}, {0, 0, 0, 1}, {0, 0, 1, 0}, {0, 0, 1, 1},
+                                                   {0, 1, 0, 0}, {0, 1, 0, 1}, {0, 1, 1, 0}, {0, 1, 1, 1},
+                                                   {1, 0, 0, 0}, {1, 0, 0, 1}, {1, 0, 1, 0}, {1, 0, 1, 1},
+                                                   {1, 1, 0, 0}, {1, 1, 0, 1}, {1, 1, 1, 0}, {1, 1, 1, 1}};
+    std::vector<double> expected_outputs = {0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0};
 
     // Train the neural network
     neuralNetwork.TrainNetwork(input_sets, expected_outputs, 15000);

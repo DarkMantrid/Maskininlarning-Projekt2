@@ -238,7 +238,7 @@ void NeuralNetwork::PredictAndControlLED() {
     double prediction = Predict(buttonStates);
 
     // Control LED based on the predicted state
-    ControlLED(prediction > 0.5); // Assuming 0.5 threshold for binary prediction
+    ControlLED(prediction > 0.5);
 }
 
 
