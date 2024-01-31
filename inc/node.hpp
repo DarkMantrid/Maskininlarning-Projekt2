@@ -42,11 +42,10 @@ public:
     void InitializeGPIO();
 
     /**********************************************************************
-     * @brief Trains the neural network using backpropagation
+     * @brief Trains the neural network
      * @param inputs Vector of input data
      * @param targets Vector of target outputs
      * @param epochs Number of training epochs
-     * @param learning_rate Learning rate for weight updates
      **********************************************************************/
     void TrainNetwork(const std::vector<std::vector<double>> &inputs, const std::vector<double> &targets, int epochs);
 

@@ -6,7 +6,14 @@
 #include <chrono>
 
 namespace {
-    
+
+/**********************************************************************
+ * @brief Template function to print elements of a vector to an output stream.
+ * @tparam T The type of elements in the vector. Default is int.
+ * @param data The vector containing elements to be printed.
+ * @param ostream The output stream where the elements will be printed. 
+ *                Default is std::cout.
+ *********************************************************************/    
 template <typename T = int>
 void Print(const std::vector<T>& data, std::ostream& ostream = std::cout) {
     static_assert(std::is_arithmetic<T>::value, 
@@ -23,6 +30,10 @@ void Print(const std::vector<T>& data, std::ostream& ostream = std::cout) {
 namespace yrgo {
 namespace machine_learning {
 
+/**********************************************************************
+ * @brief Default constructor for NeuralNetwork class
+ * @param num_inputs, num_hidden, num_outputs, learning_rate
+ **********************************************************************/
 NeuralNetwork::NeuralNetwork(const std::size_t num_inputs, 
                              const std::size_t num_hidden, 
                              const std::size_t num_outputs,
@@ -40,6 +51,9 @@ NeuralNetwork::NeuralNetwork(const std::size_t num_inputs,
 
 }
 
+/**********************************************************************
+ * @brief Destructor for NeuralNetwork class
+ **********************************************************************/
 NeuralNetwork::~NeuralNetwork() {
     // Release GPIO resources
     if (chip) {
@@ -55,12 +69,13 @@ NeuralNetwork::~NeuralNetwork() {
             gpiod_line_release(line);
         }
     }
+    // Release neural network resources
     buttonLines.clear();
-
-    // Release neural network resources if needed
-    // Add additional logic here for neural network resource cleanup if any
 }
 
+/**********************************************************************
+ * @brief Initializes the GPIO chip and lines
+ **********************************************************************/
 void NeuralNetwork::InitializeGPIO() {
     // Open GPIO chip
     chip = gpiod_chip_open("/dev/gpiochip0");
@@ -70,7 +85,7 @@ void NeuralNetwork::InitializeGPIO() {
     }
 
     // Open and configure the LED line
-    constexpr int ledGPIO = 17; // Replace with the actual GPIO pin for the LED
+    constexpr int ledGPIO = 17;
     ledLine = gpiod_chip_get_line(chip, ledGPIO);
     if (!ledLine) {
         std::cerr << "Error getting LED line" << std::endl;
@@ -82,7 +97,7 @@ void NeuralNetwork::InitializeGPIO() {
     }
 
     // GPIO numbers for buttons
-    std::vector<int> buttonGPIOLines = {22, 23, 24, 25}; // Replace with your actual GPIO numbers for buttons
+    std::vector<int> buttonGPIOLines = {22, 23, 24, 25};
 
     // Loop through the button lines
     for (std::vector<gpiod_line*>::size_type buttonNum = 0; buttonNum < buttonGPIOLines.size(); ++buttonNum) {
@@ -99,7 +114,10 @@ void NeuralNetwork::InitializeGPIO() {
     }
 }
 
-
+/**********************************************************************
+ * @brief Reads the states of the buttons
+ * @return Vector containing the states of the buttons
+ **********************************************************************/
 std::vector<double> NeuralNetwork::ReadButtonStates() {
     std::vector<double> buttonStates;
 
@@ -111,6 +129,10 @@ std::vector<double> NeuralNetwork::ReadButtonStates() {
     return buttonStates;
 }
 
+/**********************************************************************
+ * @brief Controls the LED based on the given state
+ * @param state The state to set the LED to
+ **********************************************************************/
 void NeuralNetwork::ControlLED(bool state) {
     // Set LED state based on prediction
     int value = state ? 1 : 0;
@@ -120,6 +142,9 @@ void NeuralNetwork::ControlLED(bool state) {
     }
 }
 
+/**********************************************************************
+ * @brief Initializes the weights and biases of the neural network
+ **********************************************************************/
 void NeuralNetwork::InitializeWeights() {
     // Initialize weights and biases with random values
     std::random_device rd;
@@ -145,23 +170,47 @@ void NeuralNetwork::InitializeWeights() {
     }
 }
 
+/**********************************************************************
+ * @brief Rectified Linear Unit (ReLU) activation function
+ * @param x Input value
+ * @return Output value after applying ReLU
+ **********************************************************************/
 double NeuralNetwork::ReLU(double x) {
     // ReLU activation function
     return std::max(0.0, x);
 }
 
+/**********************************************************************
+ * @brief Derivative of the Rectified Linear Unit (ReLU) activation function
+ * @param x Input value
+ * @return Derivative of ReLU with respect to the input value
+ **********************************************************************/
 double NeuralNetwork::ReLUDelta(double x) {
     return x > 0 ? 1 : 0;
 }
 
+/**********************************************************************
+ * @brief Hyperbolic Tangent (TanH) activation function
+ * @param x Input value
+ * @return Output value after applying TanH
+ **********************************************************************/
 double NeuralNetwork::TanH(double x) {
     return std::tanh(x);
 }
 
+/**********************************************************************
+ * @brief Derivative of the Hyperbolic Tangent (TanH) activation function
+ * @param x Input value
+ * @return Derivative of TanH with respect to the input value
+ **********************************************************************/
 double NeuralNetwork::TanHDelta(double x) {
     return 1 - std::pow(std::tanh(x), 2); // 1 - tanh^2
 }
 
+/**********************************************************************
+ * @brief Performs forward propagation in the neural network
+ * @param input Vector of input data
+ **********************************************************************/
 void NeuralNetwork::ForwardPropagation(const std::vector<double> &input) {
     std::vector<double> hidden_inputs(hidden_nodes, 0);
     for (int i = 0; i < hidden_nodes; ++i) {
@@ -182,6 +231,10 @@ void NeuralNetwork::ForwardPropagation(const std::vector<double> &input) {
     }
 }
 
+/**********************************************************************
+ * @brief Performs backpropagation in the neural network
+ * @param target Target output value
+ **********************************************************************/
 void NeuralNetwork::BackPropagation(double target) { 
     for (int i = 0; i < output_nodes; ++i) {
         output_errors[i] = (target - output[i]) * ReLUDelta(output[i]);
@@ -196,6 +249,10 @@ void NeuralNetwork::BackPropagation(double target) {
     }
 }
 
+/**********************************************************************
+ * @brief Optimizes the neural network parameters using the provided input
+ * @param input Input vector for optimization
+ **********************************************************************/
 void NeuralNetwork::Optimize(const std::vector<double> &input) {
     for (std::size_t i{}; i < hidden_nodes; ++i) {
         bias_hidden[i] += hidden_errors[i] * learning_rate;
@@ -212,6 +269,12 @@ void NeuralNetwork::Optimize(const std::vector<double> &input) {
     }
 }
 
+/**********************************************************************
+ * @brief Trains the neural network
+ * @param inputs Vector of input data
+ * @param targets Vector of target outputs
+ * @param epochs Number of training epochs
+ **********************************************************************/
 void NeuralNetwork::TrainNetwork(const std::vector<std::vector<double>> &inputs, const std::vector<double> &targets, int epochs) {
     for (int epoch = 0; epoch < epochs; ++epoch) {
         for (size_t idx = 0; idx < inputs.size(); ++idx) {
@@ -222,6 +285,11 @@ void NeuralNetwork::TrainNetwork(const std::vector<std::vector<double>> &inputs,
     }
 }
 
+/**********************************************************************
+ * @brief Predicts the output based on the input data
+ * @param input Vector of input data
+ * @return Predicted output value
+ **********************************************************************/
 double NeuralNetwork::Predict(const std::vector<double> &input) {
     // Perform forward propagation to predict the output based on the given input
     ForwardPropagation(input);
@@ -230,6 +298,9 @@ double NeuralNetwork::Predict(const std::vector<double> &input) {
     return ReLU(output[0]);
 }
 
+/********************************************************************************
+ * @brief Predicts and controls the LEDs.
+ *******************************************************************************/
 void NeuralNetwork::PredictAndControlLED() {
     // Read the states of the buttons
     std::vector<double> buttonStates = ReadButtonStates();
@@ -241,7 +312,12 @@ void NeuralNetwork::PredictAndControlLED() {
     ControlLED(prediction > 0.5);
 }
 
-
+/********************************************************************************
+ * @brief Performs predictions with all input sets and prints the output.
+ * @param input_sets   Reference to vector holding all input sets to predict with.
+ * @param num_decimals The number of decimals to print (default = 0).
+ * @param ostream      Reference to output stream (default = terminal print).
+ ********************************************************************************/
 void NeuralNetwork::PrintPredictions(const std::vector<std::vector<double>>& input_sets,
                                      const std::size_t num_decimals,
                                      std::ostream& ostream) {
