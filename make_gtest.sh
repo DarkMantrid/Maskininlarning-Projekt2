@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd build
+cd test
 make
 cd ..
-./run_gpio
+./run_gpio_tests
