@@ -82,7 +82,7 @@ void NeuralNetwork::InitializeGPIO() {
     }
 
     // GPIO numbers for buttons
-    std::vector<int> buttonGPIOLines = {25, 26, 27, 28}; // Replace with your actual GPIO numbers for buttons
+    std::vector<int> buttonGPIOLines = {22, 23, 24, 25}; // Replace with your actual GPIO numbers for buttons
 
     // Loop through the button lines
     for (std::vector<gpiod_line*>::size_type buttonNum = 0; buttonNum < buttonGPIOLines.size(); ++buttonNum) {
