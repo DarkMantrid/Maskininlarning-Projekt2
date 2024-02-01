@@ -9,7 +9,7 @@ namespace {
 
 /**********************************************************************
  * @brief Template function to print elements of a vector to an output stream.
- * @tparam T The type of elements in the vector. Default is int.
+ * @param T The type of elements in the vector. Default is int.
  * @param data The vector containing elements to be printed.
  * @param ostream The output stream where the elements will be printed. 
  *                Default is std::cout.
